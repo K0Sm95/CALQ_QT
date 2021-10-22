@@ -20,8 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    QRegExp validInput("(\\d+\\h002E?\\d*\\s?)+");
-    QRegExpValidator validator(validInput, this);
+    validator.setNotation(QDoubleValidator::StandardNotation);
     ui->inputFirst->setValidator(&validator);
 }
 
@@ -34,19 +33,6 @@ void MainWindow::clearInput()
 {
     ui -> inputFirst -> clear();
 }
-
-/*bool MainWindow::inputIsValid(QString input)
-{
-    QRegExp wrongInput("[^\\d\\s\\x002E]");
-    if (input.contains(wrongInput))
-    {
-        QMessageBox::information(0, "Ошибка", "Введен неверный символ!");
-        return false;
-    }
-    return true;
-}
-*/
-
 
 void MainWindow::readOperand()
 {
@@ -80,43 +66,56 @@ void MainWindow::checkLastOperation()
     }
     else
     {
-        this -> values.first() = opFunc(values);
-        this -> values.removeLast();
+        while (this -> values.length() > 1)
+        {
+            this -> values.first() = opFunc(values);
+            this -> values.removeLast();
+        }
     }
+
+}
+
+void MainWindow::printIntermediateResult()
+{
+    QString tmp;
+    tmp.setNum(values.first());
+    ui -> intermediateResult -> setText(tmp);
 }
 
 void MainWindow::on_plusButton_clicked()
 {
     checkOperandAvailability();
     checkLastOperation();
+    printIntermediateResult();
     setOperation(&SumOperation);
+    ui -> operatorLabel -> setText("+");
 }
 
 void MainWindow::on_minusButton_clicked()
 {
     checkOperandAvailability();
     checkLastOperation();
+    printIntermediateResult();
     setOperation(&SubtractOperation);
+    ui -> operatorLabel -> setText("-");
 }
 
 void MainWindow::on_multiplyButton_clicked()
 {
     checkOperandAvailability();
     checkLastOperation();
+    printIntermediateResult();
     setOperation(&MultiplyOperation);
+    ui -> operatorLabel -> setText("x");
 }
 
 void MainWindow::on_divideButton_clicked()
 {
     checkOperandAvailability();
     checkLastOperation();
+    printIntermediateResult();
     setOperation(&DivideOperation);
-}
-
-void MainWindow::on_inputFirst_inputRejected()
-{
-    QMessageBox::information(0, "Ошибка", "Некорректный ввод данных!");
-    clearInput();
+    ui -> operatorLabel -> setText("/");
 }
 
 void MainWindow::on_equalsButton_clicked()
@@ -128,13 +127,28 @@ void MainWindow::on_equalsButton_clicked()
     else
     {
         checkOperandAvailability();
-        this -> result = opFunc(this -> values);
-        QString tmp;
-        tmp.setNum(result);
-        ui -> inputFirst -> setText(tmp);
-        this -> values.clear();
-        opFunc = nullptr;
+        while (this -> values.length() >= 1)
+        {
+            this -> result = opFunc(this -> values);
+            QString tmp;
+            tmp.setNum(result);
+            ui -> output -> setText(tmp);
+            ui -> intermediateResult ->setText("Промежут.");
+            ui -> operatorLabel ->clear();
+            this -> values.clear();
+            opFunc = nullptr;
 
+        }
     }
+}
 
+void MainWindow::on_inputFirst_inputRejected()
+{
+    QMessageBox::information(0, "Ошибка", "Некорректный ввод данных!");
+    clearInput();
+}
+
+void MainWindow::on_inputFirst_editingFinished()
+{
+    ui -> output -> clear();
 }

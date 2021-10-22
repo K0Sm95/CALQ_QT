@@ -4,6 +4,7 @@
 #include <functional>
 #include <QMainWindow>
 #include "QVector"
+#include "QDoubleValidator"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,8 +31,12 @@ private slots:
 
     void on_equalsButton_clicked();
 
+    void on_inputFirst_editingFinished();
+
 private:
     Ui::MainWindow *ui;
+
+    QDoubleValidator validator;
 
     double operand, result;
 
@@ -47,7 +52,7 @@ private:
 
     void checkLastOperation();
 
-    bool inputIsValid(QString& input);
+    void printIntermediateResult();
 
     void clearInput();
 
