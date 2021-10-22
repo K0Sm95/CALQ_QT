@@ -28,12 +28,27 @@ private slots:
 
     void on_inputFirst_inputRejected();
 
+    void on_equalsButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
-    void calculate(std::function<double(QVector<double>)> func);
+    double operand, result;
+
+    QVector<double> values;
+
+    std::function<double(QVector<double>)> opFunc;
+
+    void readOperand();
+
+    void checkOperandAvailability();
+
+    void setOperation(std::function<double(QVector<double>)> operation);
+
+    void checkLastOperation();
 
     bool inputIsValid(QString& input);
+
     void clearInput();
 
 };

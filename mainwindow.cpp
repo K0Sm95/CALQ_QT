@@ -1,14 +1,14 @@
-#include <functional>
+﻿#include <functional>
 #include <Qt>
 #include "QMessageBox"
 #include "QString"
 #include "QStringRef"
-#include "QStringList"
 #include "QRegExp"
 #include "QValidator"
 #include "QVector"
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include "spaceroperation.h"
 #include "sumoperation.h"
 #include "subtractoperation.h"
 #include "multiplyoperation.h"
@@ -46,45 +46,95 @@ void MainWindow::clearInput()
     return true;
 }
 */
-void MainWindow::calculate(std::function<double(QVector<double>)> func)
+
+
+void MainWindow::readOperand()
 {
-    QVector<double> values;
-    QString input = ui -> inputFirst -> text();
-    QStringList sepInput = input.split(QLatin1Char(' '));
-    for (int i = 0; i < sepInput.size(); ++i)
+    this -> operand = ui -> inputFirst -> text().toDouble();
+    this -> values.append(this -> operand);
+    this -> clearInput();
+}
+
+void MainWindow::setOperation(std::function<double(QVector<double>)> operation)
+{
+    this -> opFunc = operation;
+}
+
+void MainWindow::checkOperandAvailability()
+{
+    if (ui -> inputFirst -> text().isEmpty())
     {
-        QString number = sepInput[i];
-        values.append(number.toDouble());
+        return;
     }
-    double result = func(values);
-    QString tmp;
-    tmp.setNum(result);
-    ui -> inputFirst -> setText(tmp);
+    else
+    {
+        readOperand();
+    }
+}
+
+void MainWindow::checkLastOperation()
+{
+    if (!(this -> opFunc))
+    {
+        return;
+    }
+    else
+    {
+        this -> values.first() = opFunc(values);
+        this -> values.removeLast();
+    }
 }
 
 void MainWindow::on_plusButton_clicked()
 {
-    calculate(&SumOperation);
+    checkOperandAvailability();
+    checkLastOperation();
+    setOperation(&SumOperation);
 }
 
 void MainWindow::on_minusButton_clicked()
 {
-    calculate(&SubtractOperation);
+    checkOperandAvailability();
+    checkLastOperation();
+    setOperation(&SubtractOperation);
 }
 
 void MainWindow::on_multiplyButton_clicked()
 {
-    calculate(&MultiplyOperation);
+    checkOperandAvailability();
+    checkLastOperation();
+    setOperation(&MultiplyOperation);
 }
-
 
 void MainWindow::on_divideButton_clicked()
 {
-    calculate(&DivideOperation);
+    checkOperandAvailability();
+    checkLastOperation();
+    setOperation(&DivideOperation);
 }
 
 void MainWindow::on_inputFirst_inputRejected()
 {
     QMessageBox::information(0, "Ошибка", "Некорректный ввод данных!");
     clearInput();
+}
+
+void MainWindow::on_equalsButton_clicked()
+{
+    if (this ->opFunc == nullptr)
+    {
+        return;
+    }
+    else
+    {
+        checkOperandAvailability();
+        this -> result = opFunc(this -> values);
+        QString tmp;
+        tmp.setNum(result);
+        ui -> inputFirst -> setText(tmp);
+        this -> values.clear();
+        opFunc = nullptr;
+
+    }
+
 }
