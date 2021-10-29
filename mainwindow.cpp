@@ -13,6 +13,7 @@
 #include "subtractoperation.h"
 #include "multiplyoperation.h"
 #include "divideoperation.h"
+#include "sqrtoperation.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -36,29 +37,19 @@ void MainWindow::clearInput()
 
 void MainWindow::readOperand()
 {
-    this -> operand = ui -> inputFirst -> text().toDouble();
-    this -> values.append(this -> operand);
-    this -> clearInput();
-}
-
-void MainWindow::setOperation(std::function<double(QVector<double>)> operation)
-{
-    this -> opFunc = operation;
-}
-
-void MainWindow::checkOperandAvailability()
-{
     if (ui -> inputFirst -> text().isEmpty())
     {
         return;
     }
     else
     {
-        readOperand();
+        this -> operand = ui -> inputFirst -> text().toDouble();
+        this -> values.append(this -> operand);
+        this -> clearInput();
     }
 }
 
-void MainWindow::checkLastOperation()
+void MainWindow::handleLastOperation()
 {
     if (!(this -> opFunc))
     {
@@ -82,40 +73,41 @@ void MainWindow::printIntermediateResult()
     ui -> intermediateResult -> setText(tmp);
 }
 
+void MainWindow::OpButtonClickRoutine(std::function<double(QVector<double>)> operation, QString sign)
+{
+    ui -> inputFirst ->setFocus();
+    readOperand();
+    if (!values.isEmpty())
+    {
+        handleLastOperation();
+        printIntermediateResult();
+        this -> opFunc = operation;
+        ui -> operatorLabel -> setText(sign);
+    }
+    else
+    {
+        ui -> inputFirst ->setFocus();
+    }
+}
+
 void MainWindow::on_plusButton_clicked()
 {
-    checkOperandAvailability();
-    checkLastOperation();
-    printIntermediateResult();
-    setOperation(&SumOperation);
-    ui -> operatorLabel -> setText("+");
+    OpButtonClickRoutine(&SumOperation, "+");
 }
 
 void MainWindow::on_minusButton_clicked()
 {
-    checkOperandAvailability();
-    checkLastOperation();
-    printIntermediateResult();
-    setOperation(&SubtractOperation);
-    ui -> operatorLabel -> setText("-");
+    OpButtonClickRoutine(&SubtractOperation, "-");
 }
 
 void MainWindow::on_multiplyButton_clicked()
 {
-    checkOperandAvailability();
-    checkLastOperation();
-    printIntermediateResult();
-    setOperation(&MultiplyOperation);
-    ui -> operatorLabel -> setText("x");
+    OpButtonClickRoutine(&MultiplyOperation, "x");
 }
 
 void MainWindow::on_divideButton_clicked()
 {
-    checkOperandAvailability();
-    checkLastOperation();
-    printIntermediateResult();
-    setOperation(&DivideOperation);
-    ui -> operatorLabel -> setText("/");
+    OpButtonClickRoutine(&DivideOperation, "/");
 }
 
 void MainWindow::on_equalsButton_clicked()
@@ -126,7 +118,7 @@ void MainWindow::on_equalsButton_clicked()
     }
     else
     {
-        checkOperandAvailability();
+        readOperand();
         while (this -> values.length() >= 1)
         {
             this -> result = opFunc(this -> values);
@@ -137,7 +129,6 @@ void MainWindow::on_equalsButton_clicked()
             ui -> operatorLabel ->clear();
             this -> values.clear();
             opFunc = nullptr;
-
         }
     }
 }
@@ -151,4 +142,9 @@ void MainWindow::on_inputFirst_inputRejected()
 void MainWindow::on_inputFirst_editingFinished()
 {
     ui -> output -> clear();
+}
+
+void MainWindow::on_sqrtButton_clicked()
+{
+
 }

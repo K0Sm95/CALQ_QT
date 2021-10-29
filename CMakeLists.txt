@@ -43,10 +43,12 @@ else()
       subtractoperation.h
       multiplyoperation.h
       divideoperation.h
+      sqrtoperation.h
       sumoperation.cpp
       subtractoperation.cpp
       multiplyoperation.cpp
       divideoperation.cpp
+      sqrtoperation.cpp
 
   )
 endif()

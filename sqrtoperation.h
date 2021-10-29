@@ -1,11 +1,8 @@
 #ifndef SQRTOPERATION_H
 #define SQRTOPERATION_H
 
+#include "QVector"
 
-class sqrtoperation
-{
-public:
-    sqrtoperation();
-};
+double SqrtOperation(QVector<double> values);
 
 #endif // SQRTOPERATION_H

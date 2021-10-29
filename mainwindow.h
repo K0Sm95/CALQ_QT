@@ -33,6 +33,8 @@ private slots:
 
     void on_inputFirst_editingFinished();
 
+    void on_sqrtButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -46,15 +48,13 @@ private:
 
     void readOperand();
 
-    void checkOperandAvailability();
-
-    void setOperation(std::function<double(QVector<double>)> operation);
-
-    void checkLastOperation();
+    void handleLastOperation();
 
     void printIntermediateResult();
 
     void clearInput();
+
+    void OpButtonClickRoutine(std::function<double(QVector<double>)> operation, QString sign);
 
 };
 #endif // MAINWINDOW_H
