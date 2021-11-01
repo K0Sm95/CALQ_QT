@@ -1,5 +1,7 @@
 ﻿#include <functional>
 #include <Qt>
+#include "QWidget"
+#include "QLocale"
 #include "QMessageBox"
 #include "QString"
 #include "QStringRef"
@@ -8,21 +10,23 @@
 #include "QVector"
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include "spaceroperation.h"
-#include "sumoperation.h"
-#include "subtractoperation.h"
-#include "multiplyoperation.h"
-#include "divideoperation.h"
-#include "sqrtoperation.h"
+#include "binaryoperations.h"
+#include "unaryoperations.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+    ui -> setupUi(this);
+    ui -> output -> setReadOnly(true);
+    ui -> input ->setClearButtonEnabled(true);
+
+    QLocale C(QLocale::C);
+    C.setNumberOptions(QLocale::RejectGroupSeparator);
+    validator.setLocale(C);
     validator.setNotation(QDoubleValidator::StandardNotation);
-    ui->inputFirst->setValidator(&validator);
+    ui -> input->setValidator(&validator);
 }
 
 MainWindow::~MainWindow()
@@ -30,121 +34,170 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::printNumber(double value, QLineEdit* widget)
+{
+    QString tmp;
+    tmp.setNum(value);
+    widget -> setText(tmp);
+}
+
+void MainWindow::printNumber(double value, QLabel* widget)
+{
+    QString tmp;
+    tmp.setNum(value);
+    widget -> setText(tmp);
+}
+
 void MainWindow::clearInput()
 {
-    ui -> inputFirst -> clear();
+    ui -> input -> clear();
 }
 
 void MainWindow::readOperand()
 {
-    if (ui -> inputFirst -> text().isEmpty())
+    if (ui -> input -> text().isEmpty())
     {
         return;
     }
     else
     {
-        this -> operand = ui -> inputFirst -> text().toDouble();
-        this -> values.append(this -> operand);
-        this -> clearInput();
+        operand = ui -> input -> text().toDouble();
+        values.append(operand);
+        clearInput();
     }
 }
 
 void MainWindow::handleLastOperation()
 {
-    if (!(this -> opFunc))
+    if (!binaryFunc)
     {
         return;
     }
     else
     {
-        while (this -> values.length() > 1)
+        while (values.length() > 1)
         {
-            this -> values.first() = opFunc(values);
-            this -> values.removeLast();
+            values.first() = binaryFunc(values);
+            values.removeLast();
         }
     }
-
 }
 
-void MainWindow::printIntermediateResult()
+void MainWindow::BinaryOpButtonClickRoutine(BinaryOperation operation, QChar sign)
 {
-    QString tmp;
-    tmp.setNum(values.first());
-    ui -> intermediateResult -> setText(tmp);
-}
-
-void MainWindow::OpButtonClickRoutine(std::function<double(QVector<double>)> operation, QString sign)
-{
-    ui -> inputFirst ->setFocus();
+    ui -> input ->setFocus();
     readOperand();
     if (!values.isEmpty())
     {
         handleLastOperation();
-        printIntermediateResult();
-        this -> opFunc = operation;
+        printNumber(values.first(), ui -> intermediateResult);
+        binaryFunc = operation;
         ui -> operatorLabel -> setText(sign);
     }
     else
     {
-        ui -> inputFirst ->setFocus();
+        ui -> input ->setFocus();
     }
+}
+
+void MainWindow::UnaryOpButtonClickRoutine(UnaryOperation operation)
+{
+    unaryFunc = operation;
+    if (ui -> input -> text().isEmpty())
+    {
+        if (values.length() > 0)
+        {
+            values.first() = unaryFunc(values.first());
+            printNumber(values.first(), ui -> intermediateResult);
+        }
+    }
+    else
+    {
+        operand = ui -> input -> text().toDouble();
+        operand = unaryFunc(operand);
+        printNumber(operand, ui -> input);
+    }
+    ui -> input ->setFocus();
 }
 
 void MainWindow::on_plusButton_clicked()
 {
-    OpButtonClickRoutine(&SumOperation, "+");
+    BinaryOpButtonClickRoutine(&sumOperation, '+');
 }
 
 void MainWindow::on_minusButton_clicked()
 {
-    OpButtonClickRoutine(&SubtractOperation, "-");
+    BinaryOpButtonClickRoutine(&subtractOperation, '-');
 }
 
 void MainWindow::on_multiplyButton_clicked()
 {
-    OpButtonClickRoutine(&MultiplyOperation, "x");
+    BinaryOpButtonClickRoutine(&multiplyOperation, 'x');
 }
 
 void MainWindow::on_divideButton_clicked()
 {
-    OpButtonClickRoutine(&DivideOperation, "/");
+    BinaryOpButtonClickRoutine(&divideOperation, '/');
 }
+
+void MainWindow::on_sqrtButton_clicked()
+{
+    UnaryOpButtonClickRoutine(&sqrtOperation);
+}
+
+void MainWindow::on_squareButton_clicked()
+{
+    UnaryOpButtonClickRoutine(&squareOperation);
+}
+
+void MainWindow::on_absButton_clicked()
+{
+    UnaryOpButtonClickRoutine(&absOperation);
+}
+
+void MainWindow::on_sinButton_clicked()
+{
+    UnaryOpButtonClickRoutine(&sinOperation);
+}
+
+
+void MainWindow::on_cosButton_clicked()
+{
+    UnaryOpButtonClickRoutine(&cosOperation);
+}
+
 
 void MainWindow::on_equalsButton_clicked()
 {
-    if (this ->opFunc == nullptr)
+    double result;
+    if (binaryFunc == nullptr)
     {
-        return;
+        result = ui -> input ->text().toDouble();
     }
     else
     {
         readOperand();
-        while (this -> values.length() >= 1)
+        if (values.length() > 0)
         {
-            this -> result = opFunc(this -> values);
-            QString tmp;
-            tmp.setNum(result);
-            ui -> output -> setText(tmp);
-            ui -> intermediateResult ->setText("Промежут.");
-            ui -> operatorLabel ->clear();
-            this -> values.clear();
-            opFunc = nullptr;
+            result = binaryFunc(values);
         }
     }
+    printNumber(result, ui -> output);
+    ui -> intermediateResult ->setText("Промежут.");
+    ui -> input -> clear();
+    ui -> operatorLabel ->clear();
+    values.clear();
+    binaryFunc = nullptr;
 }
 
-void MainWindow::on_inputFirst_inputRejected()
+void MainWindow::on_input_inputRejected()
 {
     QMessageBox::information(0, "Ошибка", "Некорректный ввод данных!");
     clearInput();
 }
 
-void MainWindow::on_inputFirst_editingFinished()
+void MainWindow::on_input_editingFinished()
 {
     ui -> output -> clear();
 }
 
-void MainWindow::on_sqrtButton_clicked()
-{
-
-}

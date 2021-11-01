@@ -39,16 +39,10 @@ else()
       mainwindow.cpp
       mainwindow.h
       mainwindow.ui
-      sumoperation.h
-      subtractoperation.h
-      multiplyoperation.h
-      divideoperation.h
-      sqrtoperation.h
-      sumoperation.cpp
-      subtractoperation.cpp
-      multiplyoperation.cpp
-      divideoperation.cpp
-      sqrtoperation.cpp
+      binaryoperations.h
+      unaryoperations.h
+      binaryoperations.cpp
+      unaryoperations.cpp
 
   )
 endif()

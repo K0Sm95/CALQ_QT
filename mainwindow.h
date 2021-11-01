@@ -5,6 +5,8 @@
 #include <QMainWindow>
 #include "QVector"
 #include "QDoubleValidator"
+#include "QLineEdit"
+#include "QLabel"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -27,24 +29,44 @@ private slots:
 
     void on_divideButton_clicked();
 
-    void on_inputFirst_inputRejected();
+    void on_input_inputRejected();
 
     void on_equalsButton_clicked();
 
-    void on_inputFirst_editingFinished();
+    void on_input_editingFinished();
 
     void on_sqrtButton_clicked();
 
+    void on_squareButton_clicked();
+
+    void on_absButton_clicked();
+
+    void on_sinButton_clicked();
+
+    void on_cosButton_clicked();
+
 private:
+    typedef std::function<double(QVector<double>)> BinaryOperation;
+
+    typedef std::function<double(double)> UnaryOperation;
+
+    void printNumber(double value, QLineEdit *widget);
+
+    void printNumber(double value, QLabel *widget);
+
     Ui::MainWindow *ui;
 
     QDoubleValidator validator;
 
-    double operand, result;
+    double operand;
+
+    bool isLastOpUnary;
 
     QVector<double> values;
 
-    std::function<double(QVector<double>)> opFunc;
+    BinaryOperation binaryFunc;
+
+    UnaryOperation unaryFunc;
 
     void readOperand();
 
@@ -54,7 +76,9 @@ private:
 
     void clearInput();
 
-    void OpButtonClickRoutine(std::function<double(QVector<double>)> operation, QString sign);
+    void BinaryOpButtonClickRoutine(BinaryOperation operation, QChar sign);
+
+    void UnaryOpButtonClickRoutine(UnaryOperation operation);
 
 };
 #endif // MAINWINDOW_H
